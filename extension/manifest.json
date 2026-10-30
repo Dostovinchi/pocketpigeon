@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "PocketPigeon — Send tabs to your phone",
   "description": "Toss links, text and files from your browser to your phone. End-to-end encrypted, no account.",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "minimum_chrome_version": "120",
   "permissions": [
     "storage",

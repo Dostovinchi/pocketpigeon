@@ -145,14 +145,26 @@ function allowRoomCreate(ip) {
 function lanUrls() {
   const urls = [];
   const nets = os.networkInterfaces();
-  for (const entries of Object.values(nets)) {
+  for (const [name, entries] of Object.entries(nets)) {
+    if (/tailscale|virtualbox|vmware|vethernet|hyper-v/i.test(name)) continue;
     for (const entry of entries || []) {
       if (entry.family !== 'IPv4' || entry.internal) continue;
       if (entry.address.startsWith('169.254.')) continue;
+      const [a, b] = entry.address.split('.').map(Number);
+      if (a === 100 && b >= 64 && b <= 127) continue;
       urls.push(`http://${entry.address}:${PORT}`);
     }
   }
-  return [...new Set(urls)].slice(0, 5);
+  const score = (url) => {
+    const ip = url.slice(7, url.lastIndexOf(':'));
+    if (ip.startsWith('192.168.56.')) return 5;
+    if (ip.startsWith('192.168.1.')) return 0;
+    if (ip.startsWith('192.168.')) return 1;
+    if (ip.startsWith('10.')) return 2;
+    if (/^172\.(1[6-9]|2\d|3[01])\./.test(ip)) return 3;
+    return 4;
+  };
+  return [...new Set(urls)].sort((x, y) => score(x) - score(y)).slice(0, 5);
 }
 
 function serveStatic(req, res, pathname) {
